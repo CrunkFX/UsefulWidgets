@@ -163,11 +163,11 @@
             const path = document.getElementById("base-timer-path-remaining");
 
             if (timeLeft <= ALERT_THRESHOLD) {
-                path.className = "base-timer__path-remaining red";
+                path.className = "base-timer__path-remaining red"; // ROT im letzten Viertel
             } else if (timeLeft <= WARNING_THRESHOLD) {
-                path.className = "base-timer__path-remaining orange";
+                path.className = "base-timer__path-remaining orange"; // GELB (Orange) ab der Hälfte
             } else {
-                path.className = "base-timer__path-remaining green";
+                path.className = "base-timer__path-remaining green"; // GRÜN, wenn mehr als Hälfte übrig
             }
         }
 
