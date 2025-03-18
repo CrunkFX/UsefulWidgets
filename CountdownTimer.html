@@ -54,8 +54,8 @@
             color: rgb(65, 184, 131);
         }
 
-        .base-timer__path-remaining.orange {
-            color: orange;
+        .base-timer__path-remaining.yellow {
+            color: yellow;
         }
 
         .base-timer__path-remaining.red {
@@ -115,42 +115,37 @@
             return decodeURIComponent(urlParams.get(param) || defaultValue);
         }
 
-        const FULL_DASH_ARRAY = 283;
         const TIME_LIMIT = parseInt(getQueryParam("time", "20"));
-        const WARNING_THRESHOLD = TIME_LIMIT / 2;
-        const ALERT_THRESHOLD = TIME_LIMIT / 4;
+        const FULL_DASH_ARRAY = 283;
+        const HALF_THRESHOLD = TIME_LIMIT / 2;
+        const QUARTER_THRESHOLD = TIME_LIMIT / 4;
 
         const COLOR_CODES = {
-            info: { color: "green" },
-            warning: { color: "orange", threshold: WARNING_THRESHOLD },
-            alert: { color: "red", threshold: ALERT_THRESHOLD }
+            green: { color: "green" },
+            yellow: { color: "yellow", threshold: HALF_THRESHOLD },
+            red: { color: "red", threshold: QUARTER_THRESHOLD }
         };
+
+        const END_TEXT = getQueryParam("endtext", "ENDE");
+        const IN_CIRCLE_END_TEXT = getQueryParam("incircletext", "ENDE");
+        document.body.style.backgroundColor = getQueryParam("bg", "#222");
 
         let timePassed = 0;
         let timeLeft = TIME_LIMIT;
         let timerInterval = null;
 
-        const IN_CIRCLE_END_TEXT = "0:00";
-        const END_TEXT = "Zeit abgelaufen!";
-
-        function formatTime(time) {
-            const minutes = Math.floor(time / 60);
-            const seconds = time % 60;
-            return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-        }
+        document.getElementById("base-timer-label").innerHTML = formatTime(timeLeft);
 
         function startTimer() {
-            document.getElementById("base-timer-label").innerHTML = formatTime(timeLeft);
-
             timerInterval = setInterval(() => {
                 timePassed += 1;
                 timeLeft = TIME_LIMIT - timePassed;
                 document.getElementById("base-timer-label").innerHTML = formatTime(timeLeft);
-
+                
                 setCircleDasharray();
                 setRemainingPathColor(timeLeft);
-
-                if (timeLeft === 0) {
+                
+                if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     document.getElementById("base-timer-label").innerHTML = IN_CIRCLE_END_TEXT;
                     document.getElementById("end-message").innerHTML = END_TEXT;
@@ -158,32 +153,42 @@
                 }
             }, 1000);
         }
-
+        
+        function formatTime(time) {
+            const minutes = Math.floor(time / 60);
+            let seconds = time % 60;
+            if (seconds < 10) {
+                seconds = `0${seconds}`;
+            }
+            return `${minutes}:${seconds}`;
+        }
+        
         function setRemainingPathColor(timeLeft) {
+            const { red, yellow, green } = COLOR_CODES;
             const path = document.getElementById("base-timer-path-remaining");
-
-            if (timeLeft <= ALERT_THRESHOLD) {
-                path.className = "base-timer__path-remaining red"; // ROT im letzten Viertel
-            } else if (timeLeft <= WARNING_THRESHOLD) {
-                path.className = "base-timer__path-remaining orange"; // GELB (Orange) ab der Hälfte
+            
+            path.classList.remove(green.color, yellow.color, red.color);
+            
+            if (timeLeft <= red.threshold) {
+                path.classList.add(red.color);
+            } else if (timeLeft <= yellow.threshold) {
+                path.classList.add(yellow.color);
             } else {
-                path.className = "base-timer__path-remaining green"; // GRÜN, wenn mehr als Hälfte übrig
+                path.classList.add(green.color);
             }
         }
-
+        
         function calculateTimeFraction() {
             const rawTimeFraction = timeLeft / TIME_LIMIT;
             return rawTimeFraction - (1 / TIME_LIMIT) * (1 - rawTimeFraction);
         }
-
+        
         function setCircleDasharray() {
             const circleDasharray = `${(calculateTimeFraction() * FULL_DASH_ARRAY).toFixed(0)} 283`;
             document.getElementById("base-timer-path-remaining").setAttribute("stroke-dasharray", circleDasharray);
         }
-
-        window.onload = function () {
-            startTimer();
-        };
+        
+        startTimer();
     </script>
 
 </body>
